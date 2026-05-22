@@ -121,6 +121,9 @@ CREATE TABLE IF NOT EXISTS fato_contratos (
     valor_original  NUMERIC(18,2),
     valor_aditivos  NUMERIC(18,2),
     valor_total     NUMERIC(18,2),
+    total_medido    NUMERIC(18,2),
+    saldo           NUMERIC(18,2),
+    tipo_contrato   TEXT,
     status          TEXT,
     hash_linha      TEXT NOT NULL,
     PRIMARY KEY (dt_ref, hash_linha)

@@ -1,4 +1,4 @@
-"""Transformacao do relatorio 'Cadastros de Contratos-TOP.xlsx'.
+"""Transformacao do relatorio 'Cadastros de Contratos-XXX.xlsx'.
 
 Granularidade: 1 linha por contrato (PK: num_contrato).
 Schema destino: sienge.fato_contratos.
@@ -10,7 +10,7 @@ import re
 import pandas as pd
 
 
-# Indices das colunas no Excel exportado pelo Sienge (validado em 2026-05-19).
+# Indices das colunas no Excel exportado pelo Sienge (validado em 2026-05-21).
 # Se o Sienge mudar a ordem das colunas, ajuste aqui.
 COL = {
     "contrato": 0,
@@ -24,10 +24,11 @@ COL = {
     "dt_contrato": 14,
     "dt_inicio": 15,
     "dt_termino": 16,
-    "situacao": 17,
+    "situacao": 17,           # 'Situacao do Contrato' (texto cru do Sienge)
     "total": 21,
     "total_medido": 22,
     "saldo": 23,
+    "tipo_contrato": 31,      # 'Tipo do Contrato' (descricao)
 }
 
 
@@ -54,10 +55,32 @@ def _to_date(v):
 
 
 def _to_decimal(v):
+    """Converte para float. Trata strings com vírgula brasileira e 'R$ '.
+    Retorna None se nao for um numero finito."""
     if pd.isna(v):
         return None
+    if isinstance(v, (int, float)):
+        try:
+            f = float(v)
+            if f != f or f in (float("inf"), float("-inf")):
+                return None
+            return f
+        except (TypeError, ValueError):
+            return None
+    # String: limpa R$, pontos de milhar e troca virgula por ponto
+    s = str(v).strip()
+    if not s:
+        return None
+    s = s.replace("R$", "").replace(" ", "").strip()
+    if "," in s and "." in s:
+        s = s.replace(".", "").replace(",", ".")
+    elif "," in s:
+        s = s.replace(",", ".")
     try:
-        return float(v)
+        f = float(s)
+        if f != f or f in (float("inf"), float("-inf")):
+            return None
+        return f
     except (TypeError, ValueError):
         return None
 
@@ -77,8 +100,10 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
     Colunas de saida (devem casar com o schema, exceto dt_ref e hash_linha
     que sao adicionados pelo orquestrador):
       num_contrato, empresa, cod_obra, cod_fornecedor, objeto,
-      dt_assinatura, dt_inicio, dt_fim, valor_original, valor_aditivos,
-      valor_total, status
+      dt_assinatura, dt_inicio, dt_fim,
+      valor_original, valor_aditivos, valor_total,
+      total_medido, saldo,
+      tipo_contrato, status
     """
     if df.empty:
         return df
@@ -95,7 +120,7 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
         "empresa": None,  # identifica o robo (TOP/HABITAT/IMPULSI/...)
         "cod_obra": obra_split.apply(lambda t: t[0]),
         "cod_fornecedor": raw["cod_fornecedor"].apply(
-            lambda v: str(int(v)) if pd.notna(v) else None
+            lambda v: str(int(float(v))) if pd.notna(v) and str(v).strip() else None
         ),
         "objeto": raw["objeto"].apply(_str_clean),
         "dt_assinatura": raw["dt_contrato"].apply(_to_date),
@@ -104,6 +129,9 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
         "valor_original": raw["total"].apply(_to_decimal),
         "valor_aditivos": None,  # nao exportado pelo Sienge neste relatorio
         "valor_total": raw["total"].apply(_to_decimal),
+        "total_medido": raw["total_medido"].apply(_to_decimal),
+        "saldo": raw["saldo"].apply(_to_decimal),
+        "tipo_contrato": raw["tipo_contrato"].apply(_str_clean),
         "status": raw["situacao"].apply(_str_clean),
     })
 
