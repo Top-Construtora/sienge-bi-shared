@@ -119,6 +119,10 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
         "num_contrato": raw["contrato"].apply(_str_clean),
         "empresa": None,  # identifica o robo (TOP/HABITAT/IMPULSI/...)
         "cod_obra": obra_split.apply(lambda t: t[0]),
+        # Nome da obra (parseado da string "cod - nome"). Coluna prefixada com '_'
+        # nao vai pro fato (upsert filtra pelas colunas do schema); o orquestrador
+        # usa esse campo pra popular sienge.dim_obra automaticamente.
+        "_nome_obra": obra_split.apply(lambda t: t[1]),
         "cod_fornecedor": raw["cod_fornecedor"].apply(
             lambda v: str(int(float(v))) if pd.notna(v) and str(v).strip() else None
         ),

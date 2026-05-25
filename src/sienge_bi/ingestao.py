@@ -94,6 +94,15 @@ class IngestaoRunner:
         else:
             df_final["empresa"] = self.empresa
 
+        # Popula sienge.dim_obra a partir de colunas '_nome_obra' opcionais que
+        # transforms expoem (ex.: contratos). Nao bloqueia ingestao do fato em
+        # caso de erro.
+        if "_nome_obra" in df_final.columns and "cod_obra" in df_final.columns:
+            try:
+                self._popular_dim_obra(df_final)
+            except Exception as e:
+                log(f"[ingestao] {rel.nome}: aviso - falha ao popular dim_obra: {e}")
+
         df_final["dt_ref"] = dt_ref
         df_final = adicionar_hash(df_final, rel.colunas_identidade)
 
@@ -112,6 +121,25 @@ class IngestaoRunner:
         log(f"[ingestao] {rel.nome}: OK - lidas={total_lidas}, "
             f"inseridas={resultado['inseridas']}, atualizadas={resultado['atualizadas']}.")
         return {"status": "OK", **resultado}
+
+    def _popular_dim_obra(self, df: pd.DataFrame) -> None:
+        """Upsert (empresa, cod_obra, nome_obra) em sienge.dim_obra.
+
+        Le pares unicos das colunas auxiliares '_nome_obra' + 'cod_obra' + 'empresa'.
+        """
+        pares = (
+            df[["empresa", "cod_obra", "_nome_obra"]]
+            .dropna(subset=["cod_obra", "_nome_obra"])
+            .drop_duplicates(subset=["empresa", "cod_obra"])
+            .rename(columns={"_nome_obra": "nome_obra"})
+        )
+        if pares.empty:
+            return
+        resultado = upsert_dataframe(pares, "dim_obra", ["empresa", "cod_obra"])
+        self.logger(
+            f"[ingestao] dim_obra: +{resultado['inseridas']} novas, "
+            f"{resultado['atualizadas']} atualizadas"
+        )
 
     def executar(self, dt_ref: datetime.date | None = None) -> dict:
         """Executa todos os relatorios do catalogo. Retorna sumario."""
