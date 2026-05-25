@@ -60,7 +60,7 @@ def adicionar_hash(df: pd.DataFrame, colunas_identidade: list[str],
 
 
 def upsert_dataframe(df: pd.DataFrame, tabela: str, pk_cols: list[str],
-                     schema: str = "sienge", batch_size: int = 1000) -> dict:
+                     schema: str = "sienge", batch_size: int = 500) -> dict:
     """INSERT ... ON CONFLICT DO UPDATE em batches.
 
     Retorna {'inseridas': N, 'atualizadas': M} (estimado por contagem).
