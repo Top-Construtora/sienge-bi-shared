@@ -30,7 +30,15 @@ def get_engine() -> Engine:
             pool_size=2,
             max_overflow=2,
             pool_pre_ping=True,
-            connect_args={"options": "-c search_path=sienge,public"},
+            pool_recycle=300,           # recicla conexoes a cada 5min (evita timeout do PgBouncer)
+            connect_args={
+                "options": "-c search_path=sienge,public",
+                "connect_timeout": 30,
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+                "keepalives_count": 3,
+            },
         )
     return _engine
 
@@ -60,7 +68,7 @@ def adicionar_hash(df: pd.DataFrame, colunas_identidade: list[str],
 
 
 def upsert_dataframe(df: pd.DataFrame, tabela: str, pk_cols: list[str],
-                     schema: str = "sienge", batch_size: int = 500) -> dict:
+                     schema: str = "sienge", batch_size: int = 200) -> dict:
     """INSERT ... ON CONFLICT DO UPDATE em batches.
 
     Retorna {'inseridas': N, 'atualizadas': M} (estimado por contagem).
