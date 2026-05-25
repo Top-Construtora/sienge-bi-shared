@@ -206,12 +206,12 @@ CREATE TABLE IF NOT EXISTS fato_medido_comprometido (
     valor_estoque   NUMERIC(18,2),
     saldo_executar  NUMERIC(18,2),
     saldo_agregado  NUMERIC(18,2),
-    percentual_medido                       NUMERIC(7,4),
-    percentual_comprometido_medido          NUMERIC(7,4),
-    percentual_comprometido_medido_estoque  NUMERIC(7,4),
+    percentual_medido                       NUMERIC(12,4),
+    percentual_comprometido_medido          NUMERIC(12,4),
+    percentual_comprometido_medido_estoque  NUMERIC(12,4),
     -- retrocompatibilidade:
     saldo           NUMERIC(18,2),
-    percentual      NUMERIC(7,4),
+    percentual      NUMERIC(12,4),
     hash_linha      TEXT NOT NULL,
     PRIMARY KEY (dt_ref, hash_linha)
 );
