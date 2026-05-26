@@ -247,15 +247,25 @@ CREATE TABLE IF NOT EXISTS fato_solicitacoes (
 -- Fato: Analitico de Insumos
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS fato_analitico_insumos (
-    dt_ref          DATE NOT NULL,
-    empresa         TEXT,
-    cod_obra        TEXT,
-    cod_insumo      TEXT,
-    descricao       TEXT,
-    unidade         TEXT,
-    qtd_apropriada  NUMERIC(18,4),
-    valor_apropriado NUMERIC(18,2),
-    hash_linha      TEXT NOT NULL,
+    dt_ref               DATE NOT NULL,
+    empresa              TEXT,
+    cod_obra             TEXT,
+    unidade_construtiva  TEXT,
+    celula               TEXT,
+    etapa                TEXT,
+    subetapa             TEXT,
+    cod_servico          TEXT,
+    descricao_servico    TEXT,
+    cod_insumo           TEXT,
+    descricao            TEXT,
+    unidade              TEXT,
+    qtd_orcada           NUMERIC(18,4),
+    qtd_apropriada       NUMERIC(18,4),
+    qtd_consumida        NUMERIC(18,4),
+    valor_orcado         NUMERIC(18,2),
+    valor_apropriado     NUMERIC(18,2),
+    valor_consumido      NUMERIC(18,2),
+    hash_linha           TEXT NOT NULL,
     PRIMARY KEY (dt_ref, hash_linha)
 );
 
