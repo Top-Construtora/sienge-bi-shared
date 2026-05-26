@@ -162,5 +162,39 @@ class IngestaoRunner:
                     pass
                 sumario[rel.nome] = {"status": "ERRO", "inseridas": 0, "atualizadas": 0}
 
+        # Refresh da camada BI (materialized views) - alimenta o dashboard
+        try:
+            self._refresh_views_bi()
+        except Exception as e:
+            log(f"[refresh_bi] AVISO: falhou refresh das views bi.*: {e}")
+
         log("========== INGESTAO CONCLUIDA ==========\n")
         return sumario
+
+    def _refresh_views_bi(self):
+        """REFRESH MATERIALIZED VIEW nas views bi.* (atualiza camada agregada)."""
+        from .db import conexao
+        from sqlalchemy import text
+        log = self.logger
+        views = [
+            "bi.dim_empresas",
+            "bi.dim_obras",
+            "bi.contratos",
+            "bi.pedidos_compra",
+            "bi.medido_comprometido",
+            "bi.apropriacao_emissao_mensal",
+            "bi.apropriacao_vencimento_mensal",
+            "bi.insumos_apropriacao",
+            "bi.ultima_atualizacao",
+        ]
+        log("[refresh_bi] atualizando views bi.* ...")
+        # Usa autocommit do engine pra cada REFRESH (nao pode rodar em transacao)
+        from .db import get_engine
+        eng = get_engine().execution_options(isolation_level="AUTOCOMMIT")
+        with eng.connect() as conn:
+            for v in views:
+                try:
+                    conn.execute(text(f"REFRESH MATERIALIZED VIEW {v}"))
+                    log(f"  {v}: ok")
+                except Exception as e:
+                    log(f"  {v}: ERRO {e}")
