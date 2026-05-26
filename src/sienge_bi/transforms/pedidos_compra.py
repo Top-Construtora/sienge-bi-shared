@@ -13,6 +13,8 @@ import pandas as pd
 
 COL = {
     "num_pedido": 0,
+    "num_acordo_preco": 1,
+    "num_versao_acordo": 2,
     "cod_fornecedor": 3,
     "nome_fornecedor": 4,
     "cod_obra": 5,
@@ -92,6 +94,8 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
 
     out = pd.DataFrame({
         "num_pedido":       raw["num_pedido"].apply(_to_str_int),
+        "num_acordo_preco": raw["num_acordo_preco"].apply(_to_str_int),
+        "num_versao_acordo": raw["num_versao_acordo"].apply(_to_str_int),
         "empresa":          None,
         "cod_obra":         raw["cod_obra"].apply(_to_str_int),
         "cod_fornecedor":   raw["cod_fornecedor"].apply(_to_str_int),
