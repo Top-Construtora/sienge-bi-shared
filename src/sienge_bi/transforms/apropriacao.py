@@ -105,6 +105,10 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
     out = pd.DataFrame({
         "empresa": None,
         "cod_obra": obra_split.apply(lambda t: t[0]),
+        "unidade_construtiva": raw.iloc[:, COL["unidade"]].apply(_str_clean),
+        "celula": raw.iloc[:, COL["celula"]].apply(_str_clean),
+        "etapa": raw.iloc[:, COL["etapa"]].apply(_str_clean),
+        "subetapa": raw.iloc[:, COL["subetapa"]].apply(_str_clean),
         "cod_servico": servico_split.apply(lambda t: t[0]),
         "cod_fornecedor": None,
         "tipo_or": raw.iloc[:, COL["tipo_or"]].apply(_str_clean),
@@ -115,9 +119,12 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
         "dt_emissao": data if not is_vencimento else None,
         "dt_vencimento": data if is_vencimento else data_baixa,
         "documento": raw.iloc[:, COL["documento"]].apply(_str_clean),
+        "titulo_parcela": raw.iloc[:, COL["titulo"]].apply(_str_clean),
         "historico": raw.iloc[:, COL["credor"]].apply(_str_clean),
         "valor": raw.iloc[:, COL["valor"]].apply(_to_decimal),
+        "valor_documento": raw.iloc[:, COL["valor_doc"]].apply(_to_decimal),
         "quantidade": None,
+        "observacao": raw.iloc[:, COL["obs"]].apply(_str_clean),
         "_arquivo": os.path.basename(arquivo) if arquivo else "",
     })
 

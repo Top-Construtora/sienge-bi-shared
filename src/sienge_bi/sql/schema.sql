@@ -85,20 +85,27 @@ CREATE INDEX IF NOT EXISTS idx_incc_data ON dim_incc(data DESC);
 -- PK composta inclui dt_ref para permitir snapshots historicos
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS fato_apropriacao (
-    dt_ref          DATE NOT NULL,
-    empresa         TEXT NOT NULL,
-    cod_obra        TEXT NOT NULL,
-    cod_servico     TEXT,
-    cod_fornecedor  TEXT,
-    tipo_or         TEXT,            -- AC, ME, FP, etc
-    dt_competencia  DATE,
-    dt_emissao      DATE,
-    dt_vencimento   DATE,
-    documento       TEXT,
-    historico       TEXT,
-    valor           NUMERIC(18,2),
-    quantidade      NUMERIC(18,4),
-    hash_linha      TEXT NOT NULL,   -- hash de identidade da linha (idempotencia)
+    dt_ref               DATE NOT NULL,
+    empresa              TEXT NOT NULL,
+    cod_obra             TEXT NOT NULL,
+    unidade_construtiva  TEXT,
+    celula               TEXT,
+    etapa                TEXT,
+    subetapa             TEXT,
+    cod_servico          TEXT,
+    cod_fornecedor       TEXT,
+    tipo_or              TEXT,            -- AC, ME, FP, etc
+    dt_competencia       DATE,
+    dt_emissao           DATE,
+    dt_vencimento        DATE,
+    documento            TEXT,
+    titulo_parcela       TEXT,
+    historico            TEXT,
+    valor                NUMERIC(18,2),
+    valor_documento      NUMERIC(18,2),
+    quantidade           NUMERIC(18,4),
+    observacao           TEXT,
+    hash_linha           TEXT NOT NULL,   -- hash de identidade da linha (idempotencia)
     PRIMARY KEY (dt_ref, hash_linha),
     FOREIGN KEY (empresa, cod_obra) REFERENCES dim_obra(empresa, cod_obra) DEFERRABLE
 );
