@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS fato_apropriacao (
     etapa                TEXT,
     subetapa             TEXT,
     cod_servico          TEXT,
+    descricao_servico    TEXT,
     cod_fornecedor       TEXT,
     tipo_or              TEXT,            -- AC, ME, FP, etc
     dt_competencia       DATE,

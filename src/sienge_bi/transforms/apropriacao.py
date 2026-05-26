@@ -110,6 +110,7 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
         "etapa": raw.iloc[:, COL["etapa"]].apply(_str_clean),
         "subetapa": raw.iloc[:, COL["subetapa"]].apply(_str_clean),
         "cod_servico": servico_split.apply(lambda t: t[0]),
+        "descricao_servico": servico_split.apply(lambda t: t[1]),
         "cod_fornecedor": None,
         "tipo_or": raw.iloc[:, COL["tipo_or"]].apply(_str_clean),
         # dt_competencia = data principal do relatorio
