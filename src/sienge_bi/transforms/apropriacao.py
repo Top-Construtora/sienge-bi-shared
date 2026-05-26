@@ -105,6 +105,7 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
     out = pd.DataFrame({
         "empresa": None,
         "cod_obra": obra_split.apply(lambda t: t[0]),
+        "_nome_obra": obra_split.apply(lambda t: t[1]),
         "unidade_construtiva": raw.iloc[:, COL["unidade"]].apply(_str_clean),
         "celula": raw.iloc[:, COL["celula"]].apply(_str_clean),
         "etapa": raw.iloc[:, COL["etapa"]].apply(_str_clean),

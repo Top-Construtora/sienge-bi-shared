@@ -74,6 +74,7 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
 
     estado = {
         "cod_obra": None,
+        "nome_obra": None,
         "unidade_construtiva": None,
         "celula": None,
         "etapa": None,
@@ -102,8 +103,9 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
         if s0 in ROTULOS_CONTEXTO:
             chave = ROTULOS_CONTEXTO[s0]
             if chave == "obra":
-                cod, _ = _parse_cod_nome(col1)
+                cod, nome = _parse_cod_nome(col1)
                 estado["cod_obra"] = cod
+                estado["nome_obra"] = nome
             elif chave == "servico":
                 cod, desc = _parse_cod_nome_pontos(col1)
                 estado["cod_servico"] = cod
@@ -144,6 +146,7 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
         rows.append({
             "empresa": None,
             "cod_obra": estado["cod_obra"],
+            "_nome_obra": estado["nome_obra"],
             "unidade_construtiva": estado["unidade_construtiva"],
             "celula": estado["celula"],
             "etapa": estado["etapa"],

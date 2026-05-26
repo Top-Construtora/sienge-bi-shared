@@ -18,6 +18,7 @@ COL = {
     "cod_fornecedor": 3,
     "nome_fornecedor": 4,
     "cod_obra": 5,
+    "obra_str": 6,
     "dt_pedido": 7,
     "comprador": 8,
     "status": 9,
@@ -98,6 +99,9 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
         "num_versao_acordo": raw["num_versao_acordo"].apply(_to_str_int),
         "empresa":          None,
         "cod_obra":         raw["cod_obra"].apply(_to_str_int),
+        "_nome_obra":       raw["obra_str"].apply(lambda v: (
+            str(v).split(' - ', 1)[1].strip() if not pd.isna(v) and ' - ' in str(v) else None
+        )),
         "cod_fornecedor":   raw["cod_fornecedor"].apply(_to_str_int),
         "nome_fornecedor":  raw["nome_fornecedor"].apply(_str_clean),
         "cod_insumo":       None,         # granularidade por pedido, sem item
