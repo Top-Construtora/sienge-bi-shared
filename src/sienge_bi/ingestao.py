@@ -192,6 +192,11 @@ class IngestaoRunner:
         from .db import get_engine
         eng = get_engine().execution_options(isolation_level="AUTOCOMMIT")
         with eng.connect() as conn:
+            # Aumenta timeout pra evitar 'statement timeout' em views grandes
+            try:
+                conn.execute(text("SET statement_timeout = '600s'"))
+            except Exception:
+                pass
             for v in views:
                 try:
                     conn.execute(text(f"REFRESH MATERIALIZED VIEW {v}"))
