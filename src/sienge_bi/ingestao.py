@@ -162,6 +162,12 @@ class IngestaoRunner:
                     pass
                 sumario[rel.nome] = {"status": "ERRO", "inseridas": 0, "atualizadas": 0}
 
+        # Limpeza de snapshots antigos (politica: manter ultimos N dias)
+        try:
+            self._purge_snapshots_antigos(dias_retencao=5)
+        except Exception as e:
+            log(f"[purge] AVISO: falhou limpeza de snapshots antigos: {e}")
+
         # Refresh da camada BI (materialized views) - alimenta o dashboard
         try:
             self._refresh_views_bi()
@@ -170,6 +176,34 @@ class IngestaoRunner:
 
         log("========== INGESTAO CONCLUIDA ==========\n")
         return sumario
+
+    def _purge_snapshots_antigos(self, dias_retencao: int = 5):
+        """Deleta snapshots com dt_ref mais antigos que `dias_retencao` dias.
+        Mantem sempre o snapshot mais recente por empresa (mesmo que > N dias)."""
+        from .db import get_engine
+        from sqlalchemy import text
+        log = self.logger
+        tabelas = [
+            "fato_apropriacao", "fato_pedidos_compra", "fato_analitico_insumos",
+            "fato_contratos", "fato_solicitacoes", "fato_medido_comprometido",
+            "fato_orcado_comprometido",
+        ]
+        log(f"[purge] retencao={dias_retencao} dias ...")
+        eng = get_engine().execution_options(isolation_level="AUTOCOMMIT")
+        with eng.connect() as conn:
+            for t in tabelas:
+                try:
+                    r = conn.execute(text(f"""
+                        DELETE FROM sienge.{t}
+                        WHERE dt_ref < CURRENT_DATE - INTERVAL '{dias_retencao} days'
+                          AND (empresa, dt_ref) NOT IN (
+                              SELECT empresa, MAX(dt_ref) FROM sienge.{t} GROUP BY empresa
+                          )
+                    """))
+                    if r.rowcount > 0:
+                        log(f"  {t}: -{r.rowcount} linhas")
+                except Exception as e:
+                    log(f"  {t}: ERRO {e}")
 
     def _refresh_views_bi(self):
         """REFRESH MATERIALIZED VIEW nas views bi.* (atualiza camada agregada)."""
