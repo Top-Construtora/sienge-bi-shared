@@ -170,17 +170,53 @@ CREATE TABLE IF NOT EXISTS fato_pedidos_compra (
 -- -----------------------------------------------------------------------------
 -- Fato: Mapa de Controle
 -- -----------------------------------------------------------------------------
+-- Fato Mapa de Controle (integrado: SC + PC + NF + entrega)
+-- Schema reescrito em 2026-05-27 quando descobrimos que o Sienge exporta
+-- a cadeia inteira de cada item num unico relatorio. Ver migration
+-- 2026-05-27-mapa-controle-integrado.sql pra aplicacao em bases existentes.
 CREATE TABLE IF NOT EXISTS fato_mapa_controle (
-    dt_ref          DATE NOT NULL,
-    empresa         TEXT,
-    cod_obra        TEXT,
-    cod_insumo      TEXT,
-    descricao       TEXT,
-    qtd_orcada      NUMERIC(18,4),
-    qtd_comprada    NUMERIC(18,4),
-    qtd_solicitada  NUMERIC(18,4),
-    saldo           NUMERIC(18,4),
-    hash_linha      TEXT NOT NULL,
+    dt_ref                       DATE NOT NULL,
+    empresa                      TEXT,
+    num_solicitacao              TEXT,
+    cod_obra                     TEXT,
+    cod_insumo                   TEXT,
+    descricao_insumo             TEXT,
+    cod_grupo                    TEXT,
+    nome_grupo                   TEXT,
+    comprador_distribuido        TEXT,
+    detalhe                      TEXT,
+    marca                        TEXT,
+    qtd_solicitada               NUMERIC(18,4),
+    unidade                      TEXT,
+    dt_solicitacao               DATE,
+    solicitante                  TEXT,
+    situacao_solicitacao         TEXT,
+    dt_chegada_obra              DATE,
+    dt_autorizacao_sc            DATE,
+    situacao_autorizacao_item    TEXT,
+    num_pedido                   TEXT,
+    dt_pedido                    DATE,
+    situacao_pedido              TEXT,
+    comprador                    TEXT,
+    cod_fornecedor               TEXT,
+    nome_fornecedor              TEXT,
+    dt_previsao_entrega          DATE,
+    dt_autorizacao_pc            DATE,
+    situacao_autorizacao_pedido  TEXT,
+    qtd_entregue                 NUMERIC(18,4),
+    saldo                        NUMERIC(18,4),
+    dt_nf                        DATE,
+    num_nf                       TEXT,
+    valor_nf                     NUMERIC(18,2),
+    chave_nfe                    TEXT,
+    num_parcelas                 INT,
+    situacao_pagamento           TEXT,
+    dt_entrega_obra              DATE,
+    sla_geral                    INT,
+    sla_sc_pc                    INT,
+    sla_pc_nf                    INT,
+    sla_nf_entrega               INT,
+    hash_linha                   TEXT NOT NULL,
     PRIMARY KEY (dt_ref, hash_linha)
 );
 

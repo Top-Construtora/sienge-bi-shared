@@ -168,6 +168,15 @@ class IngestaoRunner:
         except Exception as e:
             log(f"[purge] AVISO: falhou limpeza de snapshots antigos: {e}")
 
+        # Limpeza de Excels antigos no Supabase Storage (mesma janela)
+        try:
+            from .storage import purgar_storage_antigos
+            n = purgar_storage_antigos(dias_retencao=5, logger=log)
+            if n > 0:
+                log(f"[purge-storage] total: -{n} arquivos")
+        except Exception as e:
+            log(f"[purge-storage] AVISO: {e}")
+
         # Refresh da camada BI (materialized views) - alimenta o dashboard
         try:
             self._refresh_views_bi()
@@ -186,7 +195,7 @@ class IngestaoRunner:
         tabelas = [
             "fato_apropriacao", "fato_pedidos_compra", "fato_analitico_insumos",
             "fato_contratos", "fato_solicitacoes", "fato_medido_comprometido",
-            "fato_orcado_comprometido",
+            "fato_orcado_comprometido", "fato_mapa_controle",
         ]
         log(f"[purge] retencao={dias_retencao} dias ...")
         eng = get_engine().execution_options(isolation_level="AUTOCOMMIT")
