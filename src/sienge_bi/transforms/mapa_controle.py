@@ -165,10 +165,14 @@ def transformar(df: pd.DataFrame, arquivo: str | None = None) -> pd.DataFrame:
             return None
         return (a - b).days
 
-    out["sla_geral"]        = [_diff(eo, ds) for eo, ds in zip(out["dt_entrega_obra"], out["dt_solicitacao"])]
-    out["sla_sc_pc"]        = [_diff(pe, ds) for pe, ds in zip(out["dt_pedido"],       out["dt_solicitacao"])]
-    out["sla_pc_nf"]        = [_diff(nf, pe) for nf, pe in zip(out["dt_nf"],           out["dt_pedido"])]
-    out["sla_nf_entrega"]   = [_diff(eo, nf) for eo, nf in zip(out["dt_entrega_obra"], out["dt_nf"])]
+    # SLAs e contagens (INT no schema). Usa Int64 nullable do pandas pra evitar
+    # NaN float chegando no upsert (psycopg2 nao adapta NaN -> NULL em colunas
+    # INT, gera erro "integer out of range" enganoso).
+    out["sla_geral"]      = pd.array([_diff(eo, ds) for eo, ds in zip(out["dt_entrega_obra"], out["dt_solicitacao"])], dtype="Int64")
+    out["sla_sc_pc"]      = pd.array([_diff(pe, ds) for pe, ds in zip(out["dt_pedido"],       out["dt_solicitacao"])], dtype="Int64")
+    out["sla_pc_nf"]      = pd.array([_diff(nf, pe) for nf, pe in zip(out["dt_nf"],           out["dt_pedido"])],       dtype="Int64")
+    out["sla_nf_entrega"] = pd.array([_diff(eo, nf) for eo, nf in zip(out["dt_entrega_obra"], out["dt_nf"])],           dtype="Int64")
+    out["num_parcelas"]   = out["num_parcelas"].astype("Int64")
 
     out = out[out["num_solicitacao"].notna()].reset_index(drop=True)
     return out

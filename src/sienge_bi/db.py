@@ -85,11 +85,25 @@ def upsert_dataframe(df: pd.DataFrame, tabela: str, pk_cols: list[str],
     colunas = [c.name for c in tbl.columns if c.name in df.columns]
     df_carga = df[colunas]
 
+    # Dedup por PK pra evitar CardinalityViolation no ON CONFLICT. Mantem a
+    # ultima linha (assumido como mais recente). Acontece em relatorios largos
+    # onde a granularidade do PK eh menor que a do Excel (ex: mesma SC+insumo
+    # gerou 2 NFs).
+    if all(c in df_carga.columns for c in pk_cols):
+        df_carga = df_carga.drop_duplicates(subset=pk_cols, keep="last").reset_index(drop=True)
+
+    # Postgres tem limite hard de 65535 parametros por query. PgBouncer no
+    # modo transaction eh mais conservador e tabelas largas (40+ colunas)
+    # explodem queries gigantes. Limita ~5000 parametros por batch pra ter
+    # folga, mas respeita o batch_size se for menor.
+    n_cols = max(len(colunas), 1)
+    batch = max(20, min(batch_size, 5000 // n_cols))
+
     with eng.begin() as conn:
         antes = conn.execute(text(f"SELECT COUNT(*) FROM {schema}.{tabela}")).scalar() or 0
 
-        for inicio in range(0, len(df_carga), batch_size):
-            lote = df_carga.iloc[inicio:inicio + batch_size]
+        for inicio in range(0, len(df_carga), batch):
+            lote = df_carga.iloc[inicio:inicio + batch]
             registros = lote.where(pd.notnull(lote), None).to_dict(orient="records")
             stmt = pg_insert(tbl).values(registros)
             update_cols = {c.name: stmt.excluded[c.name]
