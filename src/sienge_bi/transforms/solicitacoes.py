@@ -43,9 +43,15 @@ def _to_date_br(v):
     if pd.isna(v):
         return None
     try:
-        return pd.to_datetime(v, dayfirst=True, errors="coerce").date()
+        ts = pd.to_datetime(v, dayfirst=True, errors="coerce")
     except Exception:
         return None
+    # to_datetime(errors="coerce") devolve NaT pra strings invalidas; NaT.date()
+    # tambem retorna NaT, que SQLAlchemy serializa como literal 'NaT' e quebra
+    # o INSERT no Postgres (InvalidDatetimeFormat).
+    if pd.isna(ts):
+        return None
+    return ts.date()
 
 
 def _to_decimal(v):

@@ -44,9 +44,12 @@ def _to_date_br(v):
     if pd.isna(v):
         return None
     try:
-        return pd.to_datetime(v, dayfirst=True, errors="coerce").date()
+        ts = pd.to_datetime(v, dayfirst=True, errors="coerce")
     except Exception:
         return None
+    if pd.isna(ts):
+        return None
+    return ts.date()
 
 
 def _to_decimal(v):
