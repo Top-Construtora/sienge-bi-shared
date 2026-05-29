@@ -15,6 +15,7 @@ from . import (
     analitico_insumos,
     orcado_comprometido,
     medido_comprometido,
+    mapa_controle,
 )
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "analitico_insumos",
     "orcado_comprometido",
     "medido_comprometido",
+    "mapa_controle",
 ]
