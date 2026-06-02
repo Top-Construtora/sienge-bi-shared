@@ -12,7 +12,8 @@ import pandas as pd
 
 from .catalogo import Relatorio
 from .db import upsert_dataframe, registrar_log, adicionar_hash, Cronometro
-from .storage import enviar_para_storage
+# Storage do Supabase desligado em 2026-06-01 (decisao de simplificar — nao
+# precisamos do backup raw, o RPA pode ser re-executado se necessario).
 
 
 def _carregar_excel(caminho: str) -> pd.DataFrame:
@@ -60,12 +61,6 @@ class IngestaoRunner:
             registrar_log(rel.nome, dt_ref, None, 0, 0, 0, "ERRO",
                           erro="Nenhum arquivo encontrado", duracao_seg=0)
             return {"status": "ERRO", "inseridas": 0, "atualizadas": 0}
-
-        # Snapshot raw para Storage
-        for arq in arquivos:
-            ts = f"{dt_ref.year}/{dt_ref.month:02d}/{dt_ref.day:02d}"
-            path = f"{ts}/{rel.nome}/{os.path.basename(arq)}"
-            enviar_para_storage(arq, path, logger=log)
 
         # Le + transforma cada arquivo
         dfs = []
@@ -168,14 +163,7 @@ class IngestaoRunner:
         except Exception as e:
             log(f"[purge] AVISO: falhou limpeza de snapshots antigos: {e}")
 
-        # Limpeza de Excels antigos no Supabase Storage (mesma janela)
-        try:
-            from .storage import purgar_storage_antigos
-            n = purgar_storage_antigos(dias_retencao=1, logger=log)
-            if n > 0:
-                log(f"[purge-storage] total: -{n} arquivos")
-        except Exception as e:
-            log(f"[purge-storage] AVISO: {e}")
+        # Storage upload + purge removidos em 2026-06-01 — nao usamos mais.
 
         # Refresh da camada BI (materialized views) - alimenta o dashboard
         try:
