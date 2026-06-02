@@ -164,14 +164,14 @@ class IngestaoRunner:
 
         # Limpeza de snapshots antigos (politica: manter ultimos N dias)
         try:
-            self._purge_snapshots_antigos(dias_retencao=5)
+            self._purge_snapshots_antigos(dias_retencao=1)
         except Exception as e:
             log(f"[purge] AVISO: falhou limpeza de snapshots antigos: {e}")
 
         # Limpeza de Excels antigos no Supabase Storage (mesma janela)
         try:
             from .storage import purgar_storage_antigos
-            n = purgar_storage_antigos(dias_retencao=5, logger=log)
+            n = purgar_storage_antigos(dias_retencao=1, logger=log)
             if n > 0:
                 log(f"[purge-storage] total: -{n} arquivos")
         except Exception as e:
