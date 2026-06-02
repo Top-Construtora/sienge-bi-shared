@@ -211,8 +211,29 @@ class IngestaoRunner:
                     """))
                     if r.rowcount > 0:
                         log(f"  {t}: -{r.rowcount} linhas")
+                        # VACUUM ANALYZE devolve espaco fisico apos DELETE em massa.
+                        # Sem isso, o postgres so marca linhas como mortas — disco
+                        # nao cai ate o autovacuum rodar (pode demorar horas/dias).
+                        try:
+                            conn.execute(text(f"VACUUM ANALYZE sienge.{t}"))
+                            log(f"  {t}: VACUUM OK")
+                        except Exception as e2:
+                            log(f"  {t}: VACUUM AVISO {e2}")
                 except Exception as e:
                     log(f"  {t}: ERRO {e}")
+
+        # Log_ingestao tambem cresce indefinidamente (1 linha por relatorio
+        # por ingest). Trim pra 30 dias.
+        try:
+            with eng.connect() as conn:
+                r = conn.execute(text(
+                    "DELETE FROM sienge.log_ingestao WHERE criado_em < NOW() - INTERVAL '30 days'"
+                ))
+                if r.rowcount > 0:
+                    log(f"  log_ingestao: -{r.rowcount} linhas (>30d)")
+                    conn.execute(text("VACUUM ANALYZE sienge.log_ingestao"))
+        except Exception as e:
+            log(f"  log_ingestao: AVISO {e}")
 
     def _refresh_views_bi(self):
         """REFRESH MATERIALIZED VIEW nas views bi.* (atualiza camada agregada)."""
